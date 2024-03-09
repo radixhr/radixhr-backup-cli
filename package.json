@@ -1,0 +1,32 @@
+{
+  "name": "document-backup",
+  "version": "1.0.0",
+  "description": "for document backup",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "radixhr_backup": "node index.js"
+  },
+  "keywords": [
+    "APPLE"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.523.0",
+    "adm-zip": "^0.5.10",
+    "archiver": "^7.0.0",
+    "aws-sdk": "^2.1566.0",
+    "axios": "^1.6.7",
+    "commander": "^12.0.0",
+    "dotenv": "^16.4.5",
+    "jszip": "^3.10.1",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.5",
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
+  },
+  "type": "commonjs"
+}
