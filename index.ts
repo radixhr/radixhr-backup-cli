@@ -110,6 +110,41 @@ const listObjectsInFolder = async (folder: string) => {
   }
 };
 
+// Function to list objects in the specified bucket and prefix
+const listAllObjects = async () => {
+  const params = {
+    Bucket: process.env.BUCKET_NAME || "",
+    Prefix: "",
+  };
+
+  let allObjects: string[] = [];
+
+  try {
+    let shouldContinue = true;
+    let continuationToken: string | undefined = undefined;
+
+    while (shouldContinue) {
+      const data = await s3
+        .listObjectsV2({ ...params, ContinuationToken: continuationToken })
+        .promise();
+
+      // Extract keys of objects
+      const keys: string[] = data.Contents?.map((obj) => obj.Key || "") || [];
+      allObjects = allObjects.concat(keys);
+
+      if (data.NextContinuationToken) {
+        continuationToken = data.NextContinuationToken;
+      } else {
+        shouldContinue = false;
+      }
+    }
+
+    return allObjects;
+  } catch (err) {
+    throw err;
+  }
+};
+
 // Function to zip a folder
 const zipFolder = async (folderPath, outputPath) => {
   try {
@@ -176,6 +211,23 @@ program
       await zipFolder(folderPath, outputPath);
     } catch (err) {
       console.error(`Error backuping and zipping folder ${folderName}:`, err);
+    }
+  });
+
+program
+  .command("backupAll")
+  .description(
+    "Backup all files within a specified root folder from the S3 bucket"
+  )
+  .action(async () => {
+    try {
+      const objectsInFolder = await listAllObjects();
+
+      objectsInFolder.forEach(async (objectKey) => {
+        await downloadFile({ bucket: process.env.BUCKET_NAME, key: objectKey });
+      });
+    } catch (err) {
+      err;
     }
   });
 

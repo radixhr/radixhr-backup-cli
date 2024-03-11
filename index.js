@@ -179,6 +179,48 @@ var listObjectsInFolder = function (folder) { return __awaiter(void 0, void 0, v
         }
     });
 }); };
+// Function to list objects in the specified bucket and prefix
+var listAllObjects = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var params, allObjects, shouldContinue, continuationToken, data, keys, err_4;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                params = {
+                    Bucket: process.env.BUCKET_NAME || "",
+                    Prefix: "",
+                };
+                allObjects = [];
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 5, , 6]);
+                shouldContinue = true;
+                continuationToken = undefined;
+                _b.label = 2;
+            case 2:
+                if (!shouldContinue) return [3 /*break*/, 4];
+                return [4 /*yield*/, s3
+                        .listObjectsV2(__assign(__assign({}, params), { ContinuationToken: continuationToken }))
+                        .promise()];
+            case 3:
+                data = _b.sent();
+                keys = ((_a = data.Contents) === null || _a === void 0 ? void 0 : _a.map(function (obj) { return obj.Key || ""; })) || [];
+                allObjects = allObjects.concat(keys);
+                if (data.NextContinuationToken) {
+                    continuationToken = data.NextContinuationToken;
+                }
+                else {
+                    shouldContinue = false;
+                }
+                return [3 /*break*/, 2];
+            case 4: return [2 /*return*/, allObjects];
+            case 5:
+                err_4 = _b.sent();
+                throw err_4;
+            case 6: return [2 /*return*/];
+        }
+    });
+}); };
 // Function to zip a folder
 var zipFolder = function (folderPath, outputPath) { return __awaiter(void 0, void 0, void 0, function () {
     var zip, files, _i, files_1, file, filePath, fileStats, fileData;
@@ -213,7 +255,7 @@ program
     .command("list")
     .description("List all root folders in the bucket")
     .action(function () { return __awaiter(void 0, void 0, void 0, function () {
-    var rootFolders, err_4;
+    var rootFolders, err_5;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -227,8 +269,8 @@ program
                 });
                 return [3 /*break*/, 3];
             case 2:
-                err_4 = _a.sent();
-                console.error("Error:", err_4);
+                err_5 = _a.sent();
+                console.error("Error:", err_5);
                 return [3 /*break*/, 3];
             case 3: return [2 /*return*/];
         }
@@ -239,7 +281,7 @@ program
     .command("backup <folderName>")
     .description("Backup a specified root folder from the S3 bucket and zip it")
     .action(function (folderName) { return __awaiter(void 0, void 0, void 0, function () {
-    var objectsInFolder, _i, objectsInFolder_1, objectKey, folderPath, outputPath, err_5;
+    var objectsInFolder, _i, objectsInFolder_1, objectKey, folderPath, outputPath, err_6;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -271,10 +313,41 @@ program
                 _a.sent();
                 return [3 /*break*/, 8];
             case 7:
-                err_5 = _a.sent();
-                console.error("Error backuping and zipping folder ".concat(folderName, ":"), err_5);
+                err_6 = _a.sent();
+                console.error("Error backuping and zipping folder ".concat(folderName, ":"), err_6);
                 return [3 /*break*/, 8];
             case 8: return [2 /*return*/];
+        }
+    });
+}); });
+program
+    .command("backupAll")
+    .description("Backup all files within a specified root folder from the S3 bucket")
+    .action(function () { return __awaiter(void 0, void 0, void 0, function () {
+    var objectsInFolder, err_7;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                _a.trys.push([0, 2, , 3]);
+                return [4 /*yield*/, listAllObjects()];
+            case 1:
+                objectsInFolder = _a.sent();
+                objectsInFolder.forEach(function (objectKey) { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, downloadFile({ bucket: process.env.BUCKET_NAME, key: objectKey })];
+                            case 1:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); });
+                return [3 /*break*/, 3];
+            case 2:
+                err_7 = _a.sent();
+                err_7;
+                return [3 /*break*/, 3];
+            case 3: return [2 /*return*/];
         }
     });
 }); });
